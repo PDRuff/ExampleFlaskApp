@@ -1,0 +1,62 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "dockerBuildTag",
+      "type": "promptString",
+      "description": "Tag",
+      "default": "latest"
+    },
+    {
+      "type": "pickString",
+      "id": "dockerBuildTarget",
+      "description": "Target",
+      "options": [
+        {
+          "value": "function","label": "Builds out a function image."
+        },
+        {
+          "value": "app","label": "Builds out a hosted web application image."
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "label": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "type": "docker-build",
+      "dockerBuild": {
+        "context": "${workspaceFolder}",
+        "file": "${workspaceFolder}/Dockerfile",
+        "tag": "exampleapp:${input:dockerBuildTag}",
+        "target": "deploy"
+      }
+    },
+    {
+      "label": "run",
+      "dependsOn": "build",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "type": "docker-run",
+      "dockerRun": {
+        "containerName": "exampleapp",
+        "image": "exampleapp:${input:dockerBuildTag}",
+        "ports": [
+          {
+            "hostPort": 8000,
+            "containerPort": 8000
+          }
+        ],
+        "remove": true,
+      }
+    }
+  ]
+}
